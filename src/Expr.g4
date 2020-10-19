@@ -1,7 +1,7 @@
 grammar Expr;
 import commonLexerRules;
 /*
-
+//可以实现以下语法
 def fun(a,b,c){
      a=4
      b=50
@@ -33,7 +33,7 @@ fun()
 */
 
 
-/*匹配 | 变量赋值 | 函数定义 | if语句 | 函数调用 | while语句 | for语句 |*/
+/*   | 变量赋值 | 函数定义 | if语句 | 函数调用 | while语句 | for语句 |*/
 file:  ( varDecl | functionDecl | d_if | callDecl | whilei | d_for )* ; 
 
 
@@ -62,6 +62,7 @@ d_block:
 //语句体
 d_stat:                                   
         callDecl                          #d_callDecl 
+        |expr                             #dd_dxpr
         |d_for                            #d_form
         |whilei                           #d_while
         |varDecl                          #assignment
@@ -91,11 +92,18 @@ d_else:
 d_for:
         FOR '(' varDecl ';' expr ';' (varDecl|expr) ')' d_block
         ;
-        
+
+
+
+
+
 //表达式
 expr:        
         callDecl                                                #call
+        |expr '[' (expr) ']'  ('=' expr)?                       #listnum
+        |expr '.' ID '(' exprList ')'                           #callMethod
         |op=('-'|'+') (INT|ID)                                  #addsubnum
+        |expr '~~'                                              #getlen //取对象长度
         |ID op=('++'|'--') INT?                                 #addaddsubsub
         |<assoc=right> expr '**' expr                           #power  //乘方
         |expr '%' expr                                          #imodle //取模
@@ -108,6 +116,8 @@ expr:
         |ID                                                     #id
         |INT                                                    #int
         |STRING                                                 #string
+        |'[' expr (',' expr)* ']'                               #list
+        |'{' expr ':' expr  (',' expr ':' expr)*  '}'           #dict
         |'(' expr ')'                                           #parens
         ;
 //实际参数列表

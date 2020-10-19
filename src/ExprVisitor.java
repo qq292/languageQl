@@ -53,6 +53,13 @@ public interface ExprVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitD_callDecl(ExprParser.D_callDeclContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code dd_dxpr}
+	 * labeled alternative in {@link ExprParser#d_stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDd_dxpr(ExprParser.Dd_dxprContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code d_form}
 	 * labeled alternative in {@link ExprParser#d_stat}.
 	 * @param ctx the parse tree
@@ -125,6 +132,13 @@ public interface ExprVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitD_for(ExprParser.D_forContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code callMethod}
+	 * labeled alternative in {@link ExprParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallMethod(ExprParser.CallMethodContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code parens}
 	 * labeled alternative in {@link ExprParser#expr}.
 	 * @param ctx the parse tree
@@ -174,6 +188,13 @@ public interface ExprVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitInull(ExprParser.InullContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code list}
+	 * labeled alternative in {@link ExprParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitList(ExprParser.ListContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code ifalse}
 	 * labeled alternative in {@link ExprParser#expr}.
 	 * @param ctx the parse tree
@@ -202,6 +223,13 @@ public interface ExprVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCall(ExprParser.CallContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code listnum}
+	 * labeled alternative in {@link ExprParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitListnum(ExprParser.ListnumContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code imodle}
 	 * labeled alternative in {@link ExprParser#expr}.
 	 * @param ctx the parse tree
@@ -215,6 +243,20 @@ public interface ExprVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRelate(ExprParser.RelateContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code getlen}
+	 * labeled alternative in {@link ExprParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGetlen(ExprParser.GetlenContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code dict}
+	 * labeled alternative in {@link ExprParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDict(ExprParser.DictContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code id}
 	 * labeled alternative in {@link ExprParser#expr}.

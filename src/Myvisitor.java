@@ -1,5 +1,10 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import javax.swing.plaf.basic.BasicScrollPaneUI.HSBChangeListener;
+
+import java.lang.reflect.Method;
 
 import org.antlr.v4.runtime.tree.*;
 
@@ -17,7 +22,14 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
     HashMap<String,Object> dif_elseStat;//else调用状态
     HashMap<String,Object> while_Stat;//while调用状态
     HashMap<String,Object> for_Stat;//for调用状态
-    String now=null;
+    String FUNCTION=null;
+
+    public static void exitPrint(Object s){
+        System.out.println(s);
+        System.out.print("\n进程结束，退出代码为1");
+        System.exit(1);
+    }
+
     public Object addMyID(String id, Object value){
         //for_Stat
         if(for_Stat!=null){
@@ -150,6 +162,12 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
         Object left = visit(ctx.expr(0));
         Object right = visit(ctx.expr(1));
         if(ctx.op.getType()==ExprLexer.ADD){
+            if(left instanceof ArrayList || right instanceof ArrayList){
+                exitPrint("[行:"+ctx.op.getLine()+"]"+"list类型不能做 + 运算");
+                return null;
+            }
+
+
             if(left instanceof Double && right instanceof Double){
                 return (double)left+(double)right;
             }else if(left instanceof String && right instanceof String){
@@ -192,7 +210,10 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
             }
             
         }
-        
+        if(!(left instanceof Double && right instanceof Double)){
+            exitPrint("[行:"+ctx.op.getLine()+"]"+" + 运算只允许 int 类型");
+            return null;
+        }
         return (double)left-(double)right;
     }
     //|expr '%' expr                                          #imodle //取模
@@ -203,7 +224,7 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
         if(left instanceof Double && right instanceof Double){
             return (double)left % (double)right;
         }else{
-            System.out.println("[行:"+ctx.MOULD().getSymbol().getLine()+"]"+"类型不符需要 int");
+            exitPrint("[行:"+ctx.MOULD().getSymbol().getLine()+"]"+"类型不符需要 int");
         }
         return null;
     }
@@ -228,14 +249,14 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
                 if(left instanceof Double && right instanceof Double){
                     return (double)left<(double)right;
                 }else{
-                    System.out.println("[行:"+line+"]"+"error类型不符合 <");
+                    exitPrint("[行:"+line+"]"+"类型不符合 <");
                 }
                 break;
             case ExprLexer.GREATER://>
                 if(left instanceof Double && right instanceof Double){
                     return (double)left>(double)right;
                 }else{
-                    System.out.println("[行:"+line+"]"+"error类型不符合 >");
+                    exitPrint("[行:"+line+"]"+"error类型不符合 >");
                 }
                 break;
             case ExprLexer.UNEQUAL:// !=
@@ -248,14 +269,14 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
                 if(left instanceof Double && right instanceof Double){
                     return (double)left>=(double)right;
                 }else{
-                    System.out.println("[行:"+line+"]"+"error类型不符合 >=");
+                    exitPrint("[行:"+line+"]"+"error类型不符合 >=");
                 }
                 break;
             case ExprLexer.LESS_EQUAL:// <=
                 if(left instanceof Double && right instanceof Double){
                     return (double)left<=(double)right;
                 }else{
-                    System.out.println("[行:"+line+"]"+"error类型不符合 <=");
+                    exitPrint("[行:"+line+"]"+"error类型不符合 <=");
                 }
                 break;  
         }
@@ -381,8 +402,7 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
         if(file_varList.containsKey(id)){
             return file_varList.get(id);
         }
-        
-        System.out.println("[行:"+ctx.ID().getSymbol().getLine()+"] "+"未定义的变量："+id);
+        exitPrint("[行:"+ctx.ID().getSymbol().getLine()+"] "+"未定义的变量："+id);
         return null;
     }
     //|INT                            #int
@@ -488,6 +508,8 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
                 System.out.println();
             }else{
                 for(Object ob:exprList){
+                    
+
                     if(ob instanceof Double){
                         if((double)ob%1==0){
                             System.out.print((int)(double)ob);
@@ -542,7 +564,7 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
                 
             }else{
                 
-                System.out.println("[行:"+ctx.ID().getSymbol().getLine()+"] "+fName+" 实参和形参数量不符合");
+                exitPrint("[行:"+ctx.ID().getSymbol().getLine()+"] "+fName+" 实参和形参数量不符合");
                 return null;
             }
             
@@ -565,7 +587,7 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
             }
 
         }else{
-            System.out.println("[行:"+ctx.ID().getSymbol().getLine()+"] "+"找不到函数："+ fName);
+            exitPrint("[行:"+ctx.ID().getSymbol().getLine()+"] "+"找不到函数："+ fName);
         }
 
          //函数调用结束 返回上一个函数调用状态
@@ -633,7 +655,11 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
     // callDecl                          #d_callDecl 
     @Override
     public Object visitD_callDecl(ExprParser.D_callDeclContext ctx) {
-        
+        return visit(ctx.callDecl());
+    }
+    //call
+    @Override
+    public Object visitCall(ExprParser.CallContext ctx) {
         return visit(ctx.callDecl());
     }
     //|d_if                            #d_ifm   
@@ -915,8 +941,13 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
     //whilei:  WHILE '(' expr ')' d_block
     @Override
     public Object visitWhilei(ExprParser.WhileiContext ctx) {
-        Object value = visit(ctx.expr());
         HashMap<String,Object> uPwhile_Stat = new HashMap<>();
+        Object value = visit(ctx.expr());
+        if(!(value instanceof Boolean)){
+            exitPrint(String.format("[行:%s] while的条件必须为逻辑值", ctx.expr().start.getLine()));
+            
+        }
+
         if( while_Stat==null){
             while_Stat = new HashMap<>();
         }else{
@@ -981,7 +1012,106 @@ public class Myvisitor extends ExprBaseVisitor<Object>{
     public Object visitIbreak(ExprParser.IbreakContext ctx) {
         return ctx;
     }
+    // |'[' expr (',' expr)* ']'                               #list
+    @Override
+    public Object visitList(ExprParser.ListContext ctx) {
+        ArrayList<Object> arraylist = new ArrayList<>();
+        for(ExprParser.ExprContext ls:ctx.expr()){
+            arraylist.add(visit(ls));
+        
+        }
+        
+        return arraylist;
+    }
+    //|expr '[' (expr) ']'  ('=' expr)?                     #listnum
+    @Override
+    public Object visitListnum(ExprParser.ListnumContext ctx) {
+        Object list =visit(ctx.expr(0));
+        int lien = ctx.expr(0).start.getLine();
+        Object index=visit(ctx.expr(1));
+        if(!(index instanceof Double)){
+            exitPrint("[行:"+lien+"]"+"不是int ");
+            return null;
+        }
 
+        if(!(list instanceof ArrayList) ){
+            exitPrint("[行:"+lien+"]"+"不是list ");
+            return null;
+        }
+        try{
+            if(ctx.expr(2)!=null){
+                ((ArrayList<Object>)list).set((int)(double)index,visit(ctx.expr(2)));
+                return null;
+            }else{
+                return ((ArrayList<Object>)list).get((int)(double)index);
+            }
+        }catch(IndexOutOfBoundsException e){
+            exitPrint("[行:"+lien+"]"+"下标越界错误 ");
+            return null;
+        }
+        
 
+        
+    }
+    //|expr '~~'                                              #getlen //取对象长度
+    @Override
+    public Object visitGetlen(ExprParser.GetlenContext ctx) {
+        Object value =visit(ctx.expr());
+        if(value instanceof HashMap){
+            return (double)((HashMap<Object,Object>)value).size();
+        }else if(value instanceof String){
+            return (double)((String)value).length();
+        }else if(value instanceof ArrayList){
+            return (double)((ArrayList)value).size();
+        }else{
+            exitPrint("[行:"+ctx.expr().getStart().getLine()+"]"+"此对象不支持取长度运算符 ~~");
+            return null;
+        }
+        
+    }
+    //|'{' expr ':' expr  (',' expr ':' expr)*  '}'           #dict
+    @Override
+    public Object visitDict(ExprParser.DictContext ctx) {
+        HashMap<Object,Object> dict = new HashMap();
+        int size=ctx.expr().size();
+        for(int i=0;i<size;i=i+2){
+            dict.put(visit(ctx.expr(i)),visit(ctx.expr(i+1)));
+        }
+
+        return dict;
+    }
+    //|expr '.' ID '(' exprList ')'                           #callMethod
+    @Override
+    public Object visitCallMethod(ExprParser.CallMethodContext ctx) {
+        Object v = visit(ctx.expr());
+        String id = ctx.ID().getText();
+        ArrayList<Object> ags = (ArrayList)visit(ctx.exprList());
+        int agslen = ags.size();
+
+        if(v instanceof HashMap){
+            switch(id){
+                case "get":
+                   return  ((HashMap<Object,Object>)v).get(ags.get(0));
+                    
+                case "remove":
+                    ((HashMap<Object,Object>)v).remove(ags.get(0));
+                    return null;
+                case "put":
+                    ((HashMap<Object,Object>)v).put(ags.get(0),ags.get(1));
+                    return null;
+                case "clear": 
+                     ((HashMap<Object,Object>)v).clear();
+                     return null;
+            }
+        }else if(v instanceof ArrayList){
+            switch(id){
+                case "get":
+                    if(!(ags.get(0) instanceof Double))exitPrint(String.format("[行:%s] list get方法参数必须为int类型",ctx.exprList().start.getLine()));
+                    return ((ArrayList<Object>)v).get((int)(double)ags.get(0));
+            }
+        }
+            
+        return null;
+    }
 
 }

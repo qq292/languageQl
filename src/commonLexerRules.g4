@@ -10,7 +10,11 @@ DIV:    '/' ;
 ADD:    '+' ;
 SUB:    '-' ;
 MOULD:  '%' ;
+
 DEF:    'def';
+
+DEFI: '函数';
+
 RETURN:  'return';
 IF:     'if';
 EQUAL:  '==';
@@ -25,8 +29,9 @@ BREAK:          'break';
 NULL:          'null';
 TRUE:           'true';
 FALSE:          'false';
+//LIST:           'list';
 
-ID:         [a-zA-Z]+[0-9]*;
+ID:         [a-zA-Z\u4e00-\u9fa5]+[0-9]*;
 INT:        ([0-9]+|DECINT)+  ;
 
 fragment
